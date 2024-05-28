@@ -15,6 +15,9 @@ endif()
 
 add_subdirectory(lib/glfw)
 
-add_executable(OpenGL_Boilerplate src/main.cpp)
+list(APPEND SOURCES
+    src/main.cpp
+    src/load_frame.cpp)
+add_executable(OpenGL_Boilerplate ${SOURCES})
 
 target_link_libraries(OpenGL_Boilerplate glfw ${EXTRA_LIBS})
