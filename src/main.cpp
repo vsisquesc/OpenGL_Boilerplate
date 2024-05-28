@@ -1,13 +1,19 @@
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 #include <iostream>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define GLAD_VERSION_MAJOR(version) (version / 10000)
+#define GLAD_VERSION_MINOR(version) (version % 10000)
 
 bool load_frame( int* width ,int* height, int* channels, unsigned char ** data );
 
 #define W 640
 #define H 480
 int main(){
-    GLFWwindow* window;
+  
 
 
     if(!glfwInit()){
@@ -15,9 +21,20 @@ int main(){
         return 1;
     }
 
-    window = glfwCreateWindow(W, H, "Hello World", NULL, NULL);
-
+    GLFWwindow* window  = glfwCreateWindow(W, H, "Hello World", NULL, NULL);
     glfwMakeContextCurrent(window);
+
+    
+    int version = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    if (version == 0) {
+         std::cerr <<"Failed to initialize Glad context\n" << std::endl;
+        return  1;
+    }
+
+    // Successfully loaded OpenGL
+    std::cout << "Loaded OpenGL" << GLAD_VERSION_MAJOR(version) << GLAD_VERSION_MINOR(version) << std::endl;
+
+
     if(!window){
         std::cerr << "Couldn't open Window" << std::endl;
         return 1;
@@ -29,14 +46,11 @@ int main(){
     int frame_channels;
     unsigned char* frame_data;
 
-    if(!load_frame(&frame_width, &frame_height, &frame_channels, &frame_data)){
-        std::cerr << "No se puede cargar el frame";
-        return 1;
-    };
+
 
     GLuint texture_handle;
     {
-
+        // SetUp FrameBuffer
         glGenTextures(1, &texture_handle);
         glBindTexture(GL_TEXTURE_2D, texture_handle);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -44,14 +58,12 @@ int main(){
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, frame_width, frame_height, 0, GL_RGB, GL_UNSIGNED_BYTE, frame_data);
-
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
+    
     while(!glfwWindowShouldClose(window)){
 
         glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT);
-
 
         // Set up orthographic projection
         glfwGetFramebufferSize(window, &window_width, &window_height);
@@ -60,6 +72,13 @@ int main(){
         glOrtho(0 /*LEFT*/, window_width /*RIGHT*/, 0 /*BOTTOM*/, window_height /*TOP*/, -1  /*Z NEAR*/, 1  /*Z FAR*/);
         glMatrixMode(GL_MODELVIEW);
 
+
+        // Gen Frame
+        if(!load_frame(&frame_width, &frame_height, &frame_channels, &frame_data)){
+            std::cerr << "No se puede cargar el frame";
+            return 1;
+        };
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, frame_width, frame_height, 0, GL_RGB, GL_UNSIGNED_BYTE, frame_data);
         // Render frame
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, texture_handle);
