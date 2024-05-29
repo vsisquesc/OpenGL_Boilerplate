@@ -2,18 +2,39 @@
 #include "imgui.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <cmath> 
 
 namespace AppSkeleton {
 
+    void resetValues(){
+        
+        AppSkeleton::viewport_w = 100;
+        AppSkeleton::viewport_h = 100;
+        AppSkeleton::R = 1.0;
+        AppSkeleton::G = 1.0;
+        AppSkeleton::B = 1.0;
+        AppSkeleton::A = 1.0;
+    }
+
     bool load_frame( int width ,int height, int channels, unsigned char ** data ){
+        // Gestionar cambios en h y w; hacer estático
     *data = new unsigned char[ width * height * channels];
 
+//  Hacer dinámico
+    float c_values[channels] = {
+        AppSkeleton::R,
+        AppSkeleton::G,
+        AppSkeleton::B,
+        AppSkeleton::A
+    };
     auto ptr = *data;
-    for(int x = 0; x < width; ++x){
-        for(int y = 0; y < height; ++y){
-            *ptr++ = 0xff;
-            *ptr++ = 0x00;
-            *ptr++ = 0x00;
+    for(int x = 0; x < width; x++){
+        for(int y = 0; y < height; y++){
+            for(int z = 0; z < channels; z++){
+                int idx = (y * width * channels) + (x * channels) + z;
+          
+                ptr[idx] = static_cast<int>( 0xff * c_values[z]);
+            }
         }
     }
     return true;
@@ -42,7 +63,7 @@ bool loadTexture( int w, int h, int c, GLuint* out_texture){
 #if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, frame_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_data);
 
     *out_texture = image_texture; 
 
@@ -50,13 +71,22 @@ bool loadTexture( int w, int h, int c, GLuint* out_texture){
 }
 
 
+
 void RenderUI(ImGuiIO io) {
     _DockSpace();
 
     ImGui::Begin("Settings");
-    ImGui::Button("Hola");
-    static float value = 0.0;
-    ImGui::DragFloat("Value", &value);
+    if(ImGui::Button("Reset")){
+        AppSkeleton::resetValues();
+    }
+    
+  
+    ImGui::SliderInt("W", &AppSkeleton::viewport_w, 1, 500);
+    ImGui::SliderInt("H", &AppSkeleton::viewport_h, 1, 500);
+    ImGui::SliderFloat("R", &AppSkeleton::R, 0.0f, 1.0f);
+    ImGui::SliderFloat("G", &AppSkeleton::G, 0.0f, 1.0f);
+    ImGui::SliderFloat("B", &AppSkeleton::B, 0.0f, 1.0f);
+    ImGui::SliderFloat("A", &AppSkeleton::A, 0.0f, 1.0f);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     ImGui::End();
 
@@ -66,9 +96,9 @@ void RenderUI(ImGuiIO io) {
     //  Renderizar imagen
     {
         //  Dibujar textura en el frame buffer
-        int w = (int)wsize[0];
-        int h = (int)wsize[1];
-        int c = 3;
+        int w = AppSkeleton::viewport_w;
+        int h = AppSkeleton::viewport_h;
+        int c = 4;
         GLuint my_image_texture = 0;
         if(! loadTexture( w, h,  c, &my_image_texture )){
             return ;
@@ -76,6 +106,8 @@ void RenderUI(ImGuiIO io) {
         // Get the size of the child (i.e. the whole draw size of the windows).
         // Because I use the texture from OpenGL, I need to invert the V from the UV.
         
+        ImGui::Text("pointer = %x", my_image_texture);
+        ImGui::Text("size = %d x %d", w, h);
         ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(w, h));
     }
     //  Display Image
