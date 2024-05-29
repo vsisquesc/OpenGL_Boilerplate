@@ -1,7 +1,54 @@
 #include "application.hpp"
 #include "imgui.h"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 namespace AppSkeleton {
+
+    bool load_frame( int width ,int height, int channels, unsigned char ** data ){
+    *data = new unsigned char[ width * height * channels];
+
+    auto ptr = *data;
+    for(int x = 0; x < width; ++x){
+        for(int y = 0; y < height; ++y){
+            *ptr++ = 0xff;
+            *ptr++ = 0x00;
+            *ptr++ = 0x00;
+        }
+    }
+    return true;
+}
+
+
+
+// Simple helper function to load an image into a OpenGL texture with common settings
+bool loadTexture( int w, int h, int c, GLuint* out_texture){
+    unsigned char* frame_data;
+    if(!load_frame(w, h, c, &frame_data)){
+            return false;
+    }
+    // Create a OpenGL texture identifier
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+
+    // Setup filtering parameters for display
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // This is required on WebGL for non power-of-two textures
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
+
+    // Upload pixels into texture
+#if defined(GL_UNPACK_ROW_LENGTH) && !defined(__EMSCRIPTEN__)
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+#endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, frame_data);
+
+    *out_texture = image_texture; 
+
+    return true;
+}
+
 
 void RenderUI(ImGuiIO io) {
     _DockSpace();
@@ -19,10 +66,17 @@ void RenderUI(ImGuiIO io) {
     //  Renderizar imagen
     {
         //  Dibujar textura en el frame buffer
-
+        int w = (int)wsize[0];
+        int h = (int)wsize[1];
+        int c = 3;
+        GLuint my_image_texture = 0;
+        if(! loadTexture( w, h,  c, &my_image_texture )){
+            return ;
+        };
         // Get the size of the child (i.e. the whole draw size of the windows).
         // Because I use the texture from OpenGL, I need to invert the V from the UV.
-        ImGui::Image((ImTextureID)tex, wsize, ImVec2(0, 1), ImVec2(1, 0));
+        
+        ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(w, h));
     }
     //  Display Image
     ImGui::End();
