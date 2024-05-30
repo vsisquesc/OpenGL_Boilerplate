@@ -47,8 +47,9 @@ target_link_libraries("imgui" PRIVATE glfw)
 # list(APPEND SOURCES
 #     src/old.cpp )
 list(APPEND SOURCES
-    src/main.cpp
-    src/application.cpp )
+    src/demo.cpp
+    src/APP_Settings.cpp 
+    src/APP.cpp )
 add_executable(OpenGL_Boilerplate ${SOURCES})
 
 target_link_libraries(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
