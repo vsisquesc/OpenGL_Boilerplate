@@ -16,7 +16,6 @@ void APP::_renderViewPort(ImGuiIO io) {
     ImGui::Begin("Viewport");
 
     //  Renderizar imagen
-    //  Dibujar textura en el frame buffer
     int w = this->app_settings.viewport_w;
     int h = this->app_settings.viewport_h;
     this->_loadTexture(w, h);
