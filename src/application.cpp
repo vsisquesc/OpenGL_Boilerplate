@@ -1,52 +1,47 @@
 #include "application.hpp"
 #include "imgui.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <cmath> 
 
 namespace AppSkeleton {
 
-    void resetValues(){
-        
-        AppSkeleton::viewport_w = 100;
-        AppSkeleton::viewport_h = 100;
-        AppSkeleton::R = 1.0;
-        AppSkeleton::G = 1.0;
-        AppSkeleton::B = 1.0;
-        AppSkeleton::A = 1.0;
-    }
+void resetValues() {
 
-    bool load_frame( int width ,int height, int channels, unsigned char ** data ){
-        // Gestionar cambios en h y w; hacer estático
-    *data = new unsigned char[ width * height * channels];
+    AppSkeleton::viewport_w = 100;
+    AppSkeleton::viewport_h = 100;
+    AppSkeleton::scale = 1.0;
+    AppSkeleton::R = 1.0;
+    AppSkeleton::G = 1.0;
+    AppSkeleton::B = 1.0;
+    AppSkeleton::A = 1.0;
+}
 
-//  Hacer dinámico
+bool load_frame(int width, int height, int const channels, unsigned char **data) {
+    // Gestionar cambios en h y w; hacer estático
+    *data = new unsigned char[width * height * channels];
+
+    //  Hacer dinámico
     float c_values[channels] = {
         AppSkeleton::R,
         AppSkeleton::G,
         AppSkeleton::B,
-        AppSkeleton::A
-    };
+        AppSkeleton::A};
     auto ptr = *data;
-    for(int x = 0; x < width; x++){
-        for(int y = 0; y < height; y++){
-            for(int z = 0; z < channels; z++){
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int z = 0; z < channels; z++) {
                 int idx = (y * width * channels) + (x * channels) + z;
-          
-                ptr[idx] = static_cast<int>( 0xff * c_values[z]);
+
+                ptr[idx] = static_cast<int>(0xff * c_values[z]);
             }
         }
     }
     return true;
 }
 
-
-
 // Simple helper function to load an image into a OpenGL texture with common settings
-bool loadTexture( int w, int h, int c, GLuint* out_texture){
-    unsigned char* frame_data;
-    if(!load_frame(w, h, c, &frame_data)){
-            return false;
+bool loadTexture(int w, int h, int const c, GLuint *out_texture) {
+    unsigned char *frame_data;
+    if (!load_frame(w, h, c, &frame_data)) {
+        return false;
     }
     // Create a OpenGL texture identifier
     GLuint image_texture;
@@ -65,24 +60,33 @@ bool loadTexture( int w, int h, int c, GLuint* out_texture){
 #endif
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, frame_data);
 
-    *out_texture = image_texture; 
+    *out_texture = image_texture;
 
     return true;
 }
-
-
 
 void RenderUI(ImGuiIO io) {
     _DockSpace();
 
     ImGui::Begin("Settings");
-    if(ImGui::Button("Reset")){
+    if (ImGui::Button("Reset")) {
         AppSkeleton::resetValues();
     }
-    
-  
-    ImGui::SliderInt("W", &AppSkeleton::viewport_w, 1, 500);
-    ImGui::SliderInt("H", &AppSkeleton::viewport_h, 1, 500);
+
+    if (ImGui::InputInt("W", &AppSkeleton::viewport_w)) {
+        if (AppSkeleton::viewport_w < AppSkeleton::viewport_w_min)
+            AppSkeleton::viewport_w = AppSkeleton::viewport_w_min;
+        if (AppSkeleton::viewport_w > AppSkeleton::viewport_w_max)
+            AppSkeleton::viewport_w = AppSkeleton::viewport_w_max;
+    }
+    if (ImGui::InputInt("H", &AppSkeleton::viewport_h)) {
+        if (AppSkeleton::viewport_h < AppSkeleton::viewport_h_min)
+            AppSkeleton::viewport_h = AppSkeleton::viewport_h_min;
+        if (AppSkeleton::viewport_h > AppSkeleton::viewport_h_max)
+            AppSkeleton::viewport_h = AppSkeleton::viewport_h_max;
+    }
+
+    ImGui::SliderFloat("Scale", &AppSkeleton::scale, AppSkeleton::scale_min, AppSkeleton::scale_max);
     ImGui::SliderFloat("R", &AppSkeleton::R, 0.0f, 1.0f);
     ImGui::SliderFloat("G", &AppSkeleton::G, 0.0f, 1.0f);
     ImGui::SliderFloat("B", &AppSkeleton::B, 0.0f, 1.0f);
@@ -98,17 +102,20 @@ void RenderUI(ImGuiIO io) {
         //  Dibujar textura en el frame buffer
         int w = AppSkeleton::viewport_w;
         int h = AppSkeleton::viewport_h;
-        int c = 4;
+        int const c = 4;
         GLuint my_image_texture = 0;
-        if(! loadTexture( w, h,  c, &my_image_texture )){
-            return ;
+        if (!loadTexture(w, h, c, &my_image_texture)) {
+            return;
         };
         // Get the size of the child (i.e. the whole draw size of the windows).
         // Because I use the texture from OpenGL, I need to invert the V from the UV.
-        
+
+        float scaled_w = AppSkeleton::scale * w;
+        float scaled_h = AppSkeleton::scale * h;
+
         ImGui::Text("pointer = %x", my_image_texture);
         ImGui::Text("size = %d x %d", w, h);
-        ImGui::Image((void*)(intptr_t)my_image_texture, ImVec2(w, h));
+        ImGui::Image((void *)(intptr_t)my_image_texture, ImVec2(scaled_w, scaled_h), ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f));
     }
     //  Display Image
     ImGui::End();
