@@ -61,10 +61,9 @@ list(APPEND SOURCES
     include/APP.hpp 
     src/APP_Settings.cpp 
     src/APP.cpp )
-    
-include_directories(include)
-add_library(OpenGL_Boilerplate STATIC ${SOURCES})
+     
+add_library(OpenGL_Boilerplate ${SOURCES})
 
-target_include_directories(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
+target_include_directories(OpenGL_Boilerplate PUBLIC include/ glfw glad imgui ${EXTRA_LIBS})
 target_link_libraries(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
  
