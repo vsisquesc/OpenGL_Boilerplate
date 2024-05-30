@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(OpenGL_Boilerplate)
+project(OpenGL_Boilerplate VERSION 0.1 DESCRIPTION "Libreria que genera un boilerplate para opengl")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 14)
@@ -34,37 +34,31 @@ file(GLOB IMGUI_GLOB
 
     # specific bindings...
     ${IMGUI_PATH}/backends/imgui_impl_glfw.h
-    ${IMGUI_PATH}/backends/imgui_impl_glfw.cpp
-    ${IMGUI_PATH}/backends/imgui_impl_opengl3.h
-    ${IMGUI_PATH}/backends/imgui_impl_opengl3.cpp
-    ${IMGUI_PATH}/backends/imgui_impl_opengl3_loader.cpp)
+    ${IMGUI_PATH}/backends/imgui_impl_glfw.cpp)
 add_library("imgui" STATIC ${IMGUI_GLOB})
 target_include_directories("imgui" PUBLIC ${IMGUI_PATH})
 target_link_libraries("imgui" PRIVATE glfw)
 # ----------------------------------------------------------------------
 
-# Uncomment this to run demo
+
 # list(APPEND SOURCES
-#     src/demo.cpp
-#     src/APP_Settings.cpp 
-#     src/APP.cpp )
-# add_executable(OpenGL_Boilerplate ${SOURCES})
-
-# target_link_libraries(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
-# target_include_directories(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
-
-
-
-
+#     src/old.cpp )
 list(APPEND SOURCES
-    include/APP_Settings.hpp 
-    include/APP.hpp 
     src/APP_Settings.cpp 
     src/APP.cpp )
     
 include_directories(include)
-add_library(OpenGL_Boilerplate STATIC ${SOURCES})
+add_library(OpenGL_Boilerplate SHARED ${SOURCES})
 
+
+set_target_properties(OpenGL_Boilerplate PROPERTIES VERSION ${PROJECT_VERSION})
+set_target_properties(OpenGL_Boilerplate PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
 target_include_directories(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
 target_link_libraries(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
- 
+
+
+install(TARGETS ${PROJECT_NAME} DESTINATION lib/${PROJECT_NAME})
+
+# Install library headers
+file(GLOB HEADERS include/*.h)
+install(FILES ${HEADERS} DESTINATION include/${PROJECT_NAME})
