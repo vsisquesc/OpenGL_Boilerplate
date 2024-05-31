@@ -7,13 +7,10 @@
 #include <iostream>
 
 #include <GLFW/glfw3.h>
-APP::APP(RenderFrameFunc viewport, RenderSettingsFunc settings) {
-    this->_renderFrame_callback = viewport;
-    this->_renderSettings_callback = settings;
-}
+APP::APP(RenderFrameFunc viewport, RenderSettingsFunc settings) : _renderFrame_callback(viewport), _renderSettings_callback(settings){};
 
 void APP::_renderViewPort(ImGuiIO io) {
-    ImGui::Begin("Viewport");
+    ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
 
     //  Renderizar imagen
     int w = this->app_settings.viewport_w;
