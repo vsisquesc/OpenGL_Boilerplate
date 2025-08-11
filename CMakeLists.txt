@@ -13,12 +13,12 @@ else()
     list( APPEND EXTRA_LIBS "-lGL -lGLU -lX11")
 endif()
 
-add_subdirectory(lib/glfw)
-add_subdirectory(lib/glad)
+add_subdirectory(external/glfw)
+add_subdirectory(external/glad)
 
 # -------------- IMGUI static library creation`
 #
-set(IMGUI_PATH ${CMAKE_CURRENT_LIST_DIR}/lib/imgui)
+set(IMGUI_PATH ${CMAKE_CURRENT_LIST_DIR}/external/imgui)
 file(GLOB IMGUI_GLOB
     ${IMGUI_PATH}/imgui.h
     ${IMGUI_PATH}/imgui.cpp
