@@ -10,15 +10,16 @@
 #define SCALE_MIN 0.5
 #define SCALE_MAX 4.0
 
-class APP_settings {
+class Settings {
 public:
-    void resetValues();
+    Settings();
+    virtual void resetValues();
 
-    int viewport_w = 100;
-    int viewport_h = 100;
-    float scale = 1.0;
-    float R = 1.0;
-    float G = 1.0;
-    float B = 1.0;
-    float A = 1.0;
+    int viewport_w;
+    int viewport_h;
+    float scale;
+    float R;
+    float G;
+    float B;
+    float A;
 };

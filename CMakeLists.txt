@@ -46,7 +46,7 @@ target_link_libraries("imgui" PRIVATE glfw)
 # Uncomment this to run demo
 # list(APPEND SOURCES
 #     src/demo.cpp
-#     src/APP_Settings.cpp 
+#     src/Settings.cpp 
 #     src/APP.cpp )
 # add_executable(OpenGL_Boilerplate ${SOURCES})
 
@@ -57,13 +57,13 @@ target_link_libraries("imgui" PRIVATE glfw)
 
 
 list(APPEND SOURCES
-    include/APP_Settings.hpp 
-    include/APP.hpp 
-    src/APP_Settings.cpp 
+    src/Settings.cpp
+    renderers/src/DefaultViewportRenderer.cpp
+    renderers/src/DefaultSettingsRenderer.cpp
     src/APP.cpp )
      
 add_library(OpenGL_Boilerplate ${SOURCES})
 
-target_include_directories(OpenGL_Boilerplate PUBLIC include/ glfw glad imgui ${EXTRA_LIBS})
+target_include_directories(OpenGL_Boilerplate PUBLIC include/ renderers/include/ glfw glad imgui ${EXTRA_LIBS})
 target_link_libraries(OpenGL_Boilerplate PUBLIC glfw glad imgui ${EXTRA_LIBS})
  

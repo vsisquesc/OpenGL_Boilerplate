@@ -1,8 +1,11 @@
 #pragma once
-#include "APP_Settings.hpp"
+#include "Settings.hpp"
+#include "SettingsRenderer.hpp"
+#include "ViewportRenderer.hpp"
 #include <functional>
 #include <glad/glad.h>
 #include <imgui.h>
+#include <memory>
 
 #define GLAD_VERSION_MAJOR(version) (version / 10000)
 #define GLAD_VERSION_MINOR(version) (version % 10000)
@@ -10,20 +13,21 @@
 #define H 480
 #define C 4
 
-typedef std::function<bool()> RenderSettingsFunc;
-typedef std::function<bool(APP_settings settings, unsigned char **data)> RenderFrameFunc;
+typedef std::function<bool(Settings &settings, unsigned char **data)> RenderFrameFunc;
+typedef std::function<bool(Settings &settings)> RenderSettingsFunc;
 
 class APP {
 public:
-    APP(RenderFrameFunc viewport, RenderSettingsFunc settings);
+    APP(Settings &app_settings);
+    APP(Settings &app_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings);
     int run();
 
 private:
     GLuint texture_handler = 0;
     bool isResized = true;
-    RenderFrameFunc _renderFrame_callback;
-    RenderSettingsFunc _renderSettings_callback;
-    APP_settings app_settings;
+    Settings &app_settings;
+    std::unique_ptr<ViewportRenderer> _viewportRenderer;
+    std::unique_ptr<SettingsRenderer> _settingsRenderer;
 
 private:
     bool _loadTexture(int w, int h);

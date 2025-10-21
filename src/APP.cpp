@@ -1,5 +1,7 @@
 #include "APP.hpp"
-#include "APP_Settings.hpp"
+#include "DefaultSettingsRenderer.hpp"
+#include "DefaultViewportRenderer.hpp"
+#include "Settings.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
@@ -7,7 +9,14 @@
 #include <iostream>
 
 #include <GLFW/glfw3.h>
-APP::APP(RenderFrameFunc viewport, RenderSettingsFunc settings) : _renderFrame_callback(viewport), _renderSettings_callback(settings){};
+
+APP::APP(Settings &app_settings) : app_settings(app_settings),
+                                   _viewportRenderer(std::make_unique<DefaultViewportRenderer>()),
+                                   _settingsRenderer(std::make_unique<DefaultSettingsRenderer>()) {}
+
+APP::APP(Settings &app_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings) : app_settings(app_settings),
+                                                                                                                           _viewportRenderer(std::move(viewport)),
+                                                                                                                           _settingsRenderer(std::move(settings)) {}
 
 void APP::_renderViewPort(ImGuiIO io) {
     ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
@@ -59,10 +68,8 @@ void APP::_renderSettings(ImGuiIO io) {
         ImGui::SliderFloat("A", &this->app_settings.A, 0.0f, 1.0f);
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     }
-    if (this->_renderSettings_callback != nullptr) {
-        if (ImGui::CollapsingHeader("Custom options")) {
-            this->_renderSettings_callback();
-        }
+    if (ImGui::CollapsingHeader("Custom options")) {
+        this->_settingsRenderer->render(this->app_settings);
     }
     ImGui::End();
 }
@@ -187,14 +194,8 @@ int APP::run() {
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool APP::_loadTexture(int w, int h) {
     unsigned char *frame_data;
-    if (this->_renderFrame_callback != nullptr) {
-        if (!this->_renderFrame_callback(this->app_settings, &frame_data)) {
-            return false;
-        }
-    } else {
-        if (!this->_renderFrame_default(w, h, &frame_data)) {
-            return false;
-        }
+    if (!this->_viewportRenderer->render(this->app_settings, &frame_data)) {
+        return false;
     }
 
     // Create a OpenGL texture identifier
