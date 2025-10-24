@@ -2,23 +2,24 @@
 #include "DefaultViewportRenderer.hpp"
 #include "APP.hpp"
 #include "Settings.hpp"
+#include "ViewportSettings.hpp"
 #include <functional>
 #include <glad/glad.h>
 #include <imgui.h>
 
-bool DefaultViewportRenderer::render(Settings &settings, unsigned char **data) {
+bool DefaultViewportRenderer::render(ViewportSettings &viewport_settings, Settings &settings, unsigned char **data) {
 
-    int w = settings.viewport_w;
-    int h = settings.viewport_h;
+    int w = viewport_settings.viewport_w;
+    int h = viewport_settings.viewport_h;
     // Gestionar cambios en h y w; hacer estático
     *data = new unsigned char[w * h * C];
 
     //  Hacer dinámico
     float c_values[C] = {
-        settings.R,
-        settings.G,
-        settings.B,
-        settings.A};
+        viewport_settings.R,
+        viewport_settings.G,
+        viewport_settings.B,
+        viewport_settings.A};
     auto ptr = *data;
     for (int x = 0; x < w; x++) {
         for (int y = 0; y < h; y++) {

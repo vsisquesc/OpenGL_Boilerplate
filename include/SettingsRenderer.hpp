@@ -1,7 +1,8 @@
 #pragma once
 #include "Settings.hpp"
+#include "ViewportSettings.hpp"
 
 class SettingsRenderer {
 public:
-    virtual bool render(Settings &settings) = 0;
+    virtual bool render(ViewportSettings &viewport_settings, Settings &local_settings) = 0;
 };

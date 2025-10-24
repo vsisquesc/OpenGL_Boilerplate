@@ -2,11 +2,12 @@
 #include "DefaultSettingsRenderer.hpp"
 #include "APP.hpp"
 #include "Settings.hpp"
+#include "ViewportSettings.hpp"
 #include <functional>
 #include <glad/glad.h>
 #include <imgui.h>
 
-bool DefaultSettingsRenderer::render(Settings &settings) {
+bool DefaultSettingsRenderer::render(ViewportSettings &viewport_settings, Settings &settings) {
 
     return true;
 }

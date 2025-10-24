@@ -58,6 +58,7 @@ target_link_libraries("imgui" PRIVATE glfw)
 
 list(APPEND SOURCES
     src/Settings.cpp
+    src/ViewportSettings.cpp
     renderers/src/DefaultViewportRenderer.cpp
     renderers/src/DefaultSettingsRenderer.cpp
     src/APP.cpp )

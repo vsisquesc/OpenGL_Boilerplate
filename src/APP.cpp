@@ -2,6 +2,7 @@
 #include "DefaultSettingsRenderer.hpp"
 #include "DefaultViewportRenderer.hpp"
 #include "Settings.hpp"
+#include "ViewportSettings.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
@@ -10,24 +11,24 @@
 
 #include <GLFW/glfw3.h>
 
-APP::APP(Settings &app_settings) : app_settings(app_settings),
-                                   _viewportRenderer(std::make_unique<DefaultViewportRenderer>()),
-                                   _settingsRenderer(std::make_unique<DefaultSettingsRenderer>()) {}
+APP::APP(Settings &local_settings) : local_settings(local_settings),
+                                     _viewportRenderer(std::make_unique<DefaultViewportRenderer>()),
+                                     _settingsRenderer(std::make_unique<DefaultSettingsRenderer>()) {}
 
-APP::APP(Settings &app_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings) : app_settings(app_settings),
-                                                                                                                           _viewportRenderer(std::move(viewport)),
-                                                                                                                           _settingsRenderer(std::move(settings)) {}
+APP::APP(Settings &local_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings) : local_settings(local_settings),
+                                                                                                                             _viewportRenderer(std::move(viewport)),
+                                                                                                                             _settingsRenderer(std::move(settings)) {}
 
 void APP::_renderViewPort(ImGuiIO io) {
     ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
 
     //  Renderizar imagen
-    int w = this->app_settings.viewport_w;
-    int h = this->app_settings.viewport_h;
+    int w = this->viewport_settings.viewport_w;
+    int h = this->viewport_settings.viewport_h;
     this->_loadTexture(w, h);
 
-    float scaled_w = this->app_settings.scale * w;
-    float scaled_h = this->app_settings.scale * h;
+    float scaled_w = this->viewport_settings.scale * w;
+    float scaled_h = this->viewport_settings.scale * h;
 
     ImGui::Text("pointer = %x", this->texture_handler);
     ImGui::Text("size = %d x %d", w, h);
@@ -45,38 +46,38 @@ void APP::_renderSettings(ImGuiIO io) {
             this->_resetValues();
         }
 
-        if (ImGui::InputInt("W", &this->app_settings.viewport_w)) {
+        if (ImGui::InputInt("W", &this->viewport_settings.viewport_w)) {
             this->isResized = true;
-            if (this->app_settings.viewport_w < VIEWPORT_W_MIN)
-                this->app_settings.viewport_w = VIEWPORT_W_MIN;
-            if (this->app_settings.viewport_w > VIEWPORT_W_MAX)
-                this->app_settings.viewport_w = VIEWPORT_W_MAX;
+            if (this->viewport_settings.viewport_w < VIEWPORT_W_MIN)
+                this->viewport_settings.viewport_w = VIEWPORT_W_MIN;
+            if (this->viewport_settings.viewport_w > VIEWPORT_W_MAX)
+                this->viewport_settings.viewport_w = VIEWPORT_W_MAX;
         }
 
-        if (ImGui::InputInt("H", &this->app_settings.viewport_h)) {
+        if (ImGui::InputInt("H", &this->viewport_settings.viewport_h)) {
             this->isResized = true;
-            if (this->app_settings.viewport_h < VIEWPORT_H_MIN)
-                this->app_settings.viewport_h = VIEWPORT_H_MIN;
-            if (this->app_settings.viewport_h > VIEWPORT_H_MAX)
-                this->app_settings.viewport_h = VIEWPORT_H_MAX;
+            if (this->viewport_settings.viewport_h < VIEWPORT_H_MIN)
+                this->viewport_settings.viewport_h = VIEWPORT_H_MIN;
+            if (this->viewport_settings.viewport_h > VIEWPORT_H_MAX)
+                this->viewport_settings.viewport_h = VIEWPORT_H_MAX;
         }
 
-        ImGui::SliderFloat("Scale", &this->app_settings.scale, SCALE_MIN, SCALE_MAX);
-        ImGui::SliderFloat("R", &this->app_settings.R, 0.0f, 1.0f);
-        ImGui::SliderFloat("G", &this->app_settings.G, 0.0f, 1.0f);
-        ImGui::SliderFloat("B", &this->app_settings.B, 0.0f, 1.0f);
-        ImGui::SliderFloat("A", &this->app_settings.A, 0.0f, 1.0f);
+        ImGui::SliderFloat("Scale", &this->viewport_settings.scale, SCALE_MIN, SCALE_MAX);
+        ImGui::SliderFloat("R", &this->viewport_settings.R, 0.0f, 1.0f);
+        ImGui::SliderFloat("G", &this->viewport_settings.G, 0.0f, 1.0f);
+        ImGui::SliderFloat("B", &this->viewport_settings.B, 0.0f, 1.0f);
+        ImGui::SliderFloat("A", &this->viewport_settings.A, 0.0f, 1.0f);
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     }
     if (ImGui::CollapsingHeader("Custom options")) {
-        this->_settingsRenderer->render(this->app_settings);
+        this->_settingsRenderer->render(this->viewport_settings, this->local_settings);
     }
     ImGui::End();
 }
 
 void APP::_resetValues() {
 
-    this->app_settings.resetValues();
+    this->viewport_settings.resetValues();
     this->isResized = true;
 }
 
@@ -194,7 +195,7 @@ int APP::run() {
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool APP::_loadTexture(int w, int h) {
     unsigned char *frame_data;
-    if (!this->_viewportRenderer->render(this->app_settings, &frame_data)) {
+    if (!this->_viewportRenderer->render(this->viewport_settings, this->local_settings, &frame_data)) {
         return false;
     }
 
@@ -218,27 +219,5 @@ bool APP::_loadTexture(int w, int h) {
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, frame_data);
     }
 
-    return true;
-}
-
-bool APP::_renderFrame_default(int w, int h, unsigned char **data) {
-    // Gestionar cambios en h y w; hacer estático
-    *data = new unsigned char[w * h * C];
-
-    //  Hacer dinámico
-    float c_values[C] = {
-        this->app_settings.R,
-        this->app_settings.G,
-        this->app_settings.B,
-        this->app_settings.A};
-    auto ptr = *data;
-    for (int x = 0; x < w; x++) {
-        for (int y = 0; y < h; y++) {
-            for (int z = 0; z < C; z++) {
-                int idx = (y * w * C) + (x * C) + z;
-                ptr[idx] = 0xff;
-            }
-        }
-    }
     return true;
 }
