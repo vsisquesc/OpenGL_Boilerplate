@@ -4,5 +4,10 @@
 
 class SettingsRenderer {
 public:
-    virtual bool render(ViewportSettings &viewport_settings, Settings &local_settings) = 0;
+    SettingsRenderer(ViewportSettings &viewport_settings, Settings &local_settings);
+    virtual bool render() = 0;
+
+protected:
+    ViewportSettings &viewport_settings;
+    Settings &local_settings;
 };

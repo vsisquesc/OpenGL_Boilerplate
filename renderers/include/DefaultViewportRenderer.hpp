@@ -8,5 +8,6 @@
 
 class DefaultViewportRenderer : public ViewportRenderer {
 public:
-    virtual bool render(ViewportSettings &viewport_settings, Settings &settings, unsigned char **data) override;
+    DefaultViewportRenderer(ViewportSettings &viewport_settings, Settings &settings);
+    virtual bool render(unsigned char **data) override;
 };

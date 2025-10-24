@@ -4,5 +4,10 @@
 
 class ViewportRenderer {
 public:
-    virtual bool render(ViewportSettings &viewport_settings, Settings &local_settings, unsigned char **data) = 0;
+    ViewportRenderer(ViewportSettings &viewport_settings, Settings &local_settings);
+    virtual bool render(unsigned char **data) = 0;
+
+protected:
+    ViewportSettings &viewport_settings;
+    Settings &local_settings;
 };

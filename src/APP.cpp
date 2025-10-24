@@ -11,13 +11,17 @@
 
 #include <GLFW/glfw3.h>
 
-APP::APP(Settings &local_settings) : local_settings(local_settings),
-                                     _viewportRenderer(std::make_unique<DefaultViewportRenderer>()),
-                                     _settingsRenderer(std::make_unique<DefaultSettingsRenderer>()) {}
+APP::APP(ViewportSettings &viewport_settings, Settings &local_settings) : viewport_settings(viewport_settings),
+                                                                          local_settings(local_settings) {
+    _viewportRenderer = std::make_unique<DefaultViewportRenderer>(this->viewport_settings, this->local_settings);
+    _settingsRenderer = std::make_unique<DefaultSettingsRenderer>(this->viewport_settings, this->local_settings);
+}
 
-APP::APP(Settings &local_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings) : local_settings(local_settings),
-                                                                                                                             _viewportRenderer(std::move(viewport)),
-                                                                                                                             _settingsRenderer(std::move(settings)) {}
+APP::APP(ViewportSettings &viewport_settings, Settings &local_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings) : viewport_settings(viewport_settings),
+                                                                                                                                                                  local_settings(local_settings),
+                                                                                                                                                                  _viewportRenderer(std::move(viewport)),
+                                                                                                                                                                  _settingsRenderer(std::move(settings)) {
+}
 
 void APP::_renderViewPort(ImGuiIO io) {
     ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_HorizontalScrollbar);
@@ -70,7 +74,7 @@ void APP::_renderSettings(ImGuiIO io) {
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
     }
     if (ImGui::CollapsingHeader("Custom options")) {
-        this->_settingsRenderer->render(this->viewport_settings, this->local_settings);
+        this->_settingsRenderer->render();
     }
     ImGui::End();
 }
@@ -195,7 +199,7 @@ int APP::run() {
 // Simple helper function to load an image into a OpenGL texture with common settings
 bool APP::_loadTexture(int w, int h) {
     unsigned char *frame_data;
-    if (!this->_viewportRenderer->render(this->viewport_settings, this->local_settings, &frame_data)) {
+    if (!this->_viewportRenderer->render(&frame_data)) {
         return false;
     }
 

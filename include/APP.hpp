@@ -16,14 +16,14 @@
 
 class APP {
 public:
-    APP(Settings &local_settings);
-    APP(Settings &local_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings);
+    APP(ViewportSettings &viewport_settings, Settings &local_settings);
+    APP(ViewportSettings &viewport_settings, Settings &local_settings, std::unique_ptr<ViewportRenderer> viewport, std::unique_ptr<SettingsRenderer> settings);
     int run();
 
 private:
     GLuint texture_handler = 0;
     bool isResized = true;
-    ViewportSettings viewport_settings = ViewportSettings();
+    ViewportSettings &viewport_settings;
     Settings &local_settings;
     std::unique_ptr<ViewportRenderer> _viewportRenderer;
     std::unique_ptr<SettingsRenderer> _settingsRenderer;

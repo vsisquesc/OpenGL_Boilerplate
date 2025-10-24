@@ -1,13 +1,16 @@
-#pragma once
 #include "DefaultViewportRenderer.hpp"
 #include "APP.hpp"
 #include "Settings.hpp"
+#include "ViewportRenderer.hpp"
 #include "ViewportSettings.hpp"
 #include <functional>
 #include <glad/glad.h>
 #include <imgui.h>
 
-bool DefaultViewportRenderer::render(ViewportSettings &viewport_settings, Settings &settings, unsigned char **data) {
+DefaultViewportRenderer::DefaultViewportRenderer(ViewportSettings &viewport_settings, Settings &settings) : ViewportRenderer(viewport_settings, settings) {
+}
+
+bool DefaultViewportRenderer::render(unsigned char **data) {
 
     int w = viewport_settings.viewport_w;
     int h = viewport_settings.viewport_h;

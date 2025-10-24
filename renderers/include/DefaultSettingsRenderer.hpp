@@ -7,5 +7,6 @@
 
 class DefaultSettingsRenderer : public SettingsRenderer {
 public:
-    virtual bool render(ViewportSettings &viewport_settings, Settings &settings) override;
+    DefaultSettingsRenderer(ViewportSettings &viewport_settings, Settings &settings);
+    virtual bool render() override;
 };
